@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+<head>
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+</head>
+<body>
+<script>
+async_test(function(t) {
+  const worker = new Worker("resources/worker-invalid-entries.js");
+  worker.onmessage = function(event) {
+    t.step(() => assert_equals(event.data, 'SUCCESS', 'The worker must have 0 invalid entries.'));
+    let invalid_entries = performance.getEntriesByType('invalid');
+    assert_equals(invalid_entries.length, 0, 'The window must have 0 invalid entries.');
+    t.done();
+  }
+}, 'Get invalid entries from worker and window.');
+</script>
+</body>
+</html>
