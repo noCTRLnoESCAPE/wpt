@@ -3,15 +3,11 @@
 <title>RTCPeerConnection.prototype.addTrack</title>
 <script src="/resources/testharness.js"></script>
 <script src="/resources/testharnessreport.js"></script>
-<script src="RTCPeerConnection-helper.js"></script>
 <script>
   'use strict';
 
   // Test is based on the following editor draft:
   // https://w3c.github.io/webrtc-pc/archives/20170605/webrtc.html
-
-  // The following helper functions are called from RTCPeerConnection-helper.js:
-  // generateMediaStreamTrack
 
   /*
     5.1.  RTCPeerConnection Interface Extensions
@@ -171,7 +167,9 @@
     assert_equals(transceiver.sender.track, null);
     assert_equals(transceiver.direction, 'recvonly');
 
-    const track = generateMediaStreamTrack('audio');
+    const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+    t.add_cleanup(() => stream.getTracks().forEach(track => track.stop()));
+    const [track] = stream.getTracks();
     const sender = pc.addTrack(track);
 
     assert_equals(sender, transceiver.sender);
@@ -188,7 +186,9 @@
     assert_equals(transceiver.sender.track, null);
     assert_equals(transceiver.direction, 'sendrecv');
 
-    const track = generateMediaStreamTrack('audio');
+    const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+    t.add_cleanup(() => stream.getTracks().forEach(track => track.stop()));
+    const [track] = stream.getTracks();
     const sender = pc.addTrack(track);
 
     assert_equals(sender.track, track);
@@ -201,8 +201,10 @@
     const callee = new RTCPeerConnection();
     t.add_cleanup(() => callee.close());
 
-    const transceiver =
-        caller.addTransceiver(generateMediaStreamTrack('audio'));
+    const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+    t.add_cleanup(() => stream.getTracks().forEach(track => track.stop()));
+    const [track] = stream.getTracks();
+    const transceiver = caller.addTransceiver(track);
     {
       const offer = await caller.createOffer();
       await caller.setLocalDescription(offer);
@@ -227,7 +229,7 @@
 
     // |transceiver.sender| is currently not used for sending, but it should not
     // be reused because it has been used for sending before.
-    const sender = caller.addTrack(generateMediaStreamTrack('audio'));
+    const sender = caller.addTrack(track);
     assert_true(sender != null);
     assert_not_equals(sender, transceiver.sender);
   }, 'addTrack with existing sender that has been used to send should create new sender');
@@ -240,7 +242,9 @@
     assert_equals(transceiver.sender.track, null);
     assert_equals(transceiver.direction, 'recvonly');
 
-    const track = generateMediaStreamTrack('audio');
+    const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+    t.add_cleanup(() => stream.getTracks().forEach(track => track.stop()));
+    const [track] = stream.getTracks();
     const sender = pc.addTrack(track);
 
     assert_equals(sender.track, track);
